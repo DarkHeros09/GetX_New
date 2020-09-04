@@ -11,15 +11,15 @@ import 'app/routes/app_pages.dart';
 import 'app/ui/theme/app_theme.dart';
 
 void main() async {
-  final Auth auth = Get.put(Auth());
-  await initializeAppServices();
+  final Auth auth = Get.put(Auth(), permanent: true);
+  // await initializeAppServices();
   runApp(
     GetMaterialApp(
       debugShowCheckedModeBanner: false,
       // initialRoute: '/auth-screen',
       theme: appThemeData,
       defaultTransition: Transition.fade,
-      getPages: AppPages.pages,
+      // getPages: AppPages.pages,
       home: GetBuilder(
         init: auth,
         builder: (ctx) => auth.isAuth

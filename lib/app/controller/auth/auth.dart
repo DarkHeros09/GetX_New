@@ -6,6 +6,7 @@ import 'package:getx_pattern/app/controller/auth/app_setting_storage.dart';
 import '../../data/model/http_exception.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Auth extends GetxController {
   String _token;
@@ -59,13 +60,15 @@ class Auth extends GetxController {
         ),
       );
       _autoLogout();
+      final prefs = await SharedPreferences.getInstance();
       update();
       final userData = jsonEncode({
         'token': _token,
         'userId': _userId,
         'expiryDate': _expiryDate.toIso8601String()
       });
-      box.token = userData;
+      // box.token = userData;
+      prefs.setString('userData', userData);
     } catch (error) {
       throw error;
     }
@@ -80,10 +83,19 @@ class Auth extends GetxController {
   }
 
   Future<bool> tryAutoLogin() async {
-    if (!box.hasToken) {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (!prefs.containsKey('userData')) {
       return false;
     }
-    final extractedUserData = jsonDecode(box.token) as Map<String, Object>;
+
+    // if (!box.hasToken) {
+    //   return false;
+    // }
+    // final extractedUserData = jsonDecode(box.token) as Map<String, Object>;
+    final extractedUserData =
+        json.decode(prefs.getString('userData')) as Map<String, Object>;
+
     final expiryData = DateTime.parse(extractedUserData['expiryDate']);
 
     if (expiryData.isBefore(DateTime.now())) {
@@ -97,7 +109,7 @@ class Auth extends GetxController {
     return true;
   }
 
-  void logout() {
+  void logout() async {
     _token = null;
     _userId = null;
     _expiryDate = null;
@@ -105,8 +117,11 @@ class Auth extends GetxController {
       _authTimer.cancel();
     }
     update();
-    box.deleteToken();
-    print(box.token);
+    // box.deleteToken();
+    // print(box.token);
+    final prefs = await SharedPreferences.getInstance();
+    // prefs.remove('userData');
+    prefs.clear();
   }
 
   void _autoLogout() {
